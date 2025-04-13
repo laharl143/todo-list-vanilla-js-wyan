@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const display = document.getElementById("pomodoro-display");
   const statusDisplay = document.getElementById("pomodoro-status");
-  const title = document.querySelector("h2"); // Grab the <h2> element for dynamic text update
+  const title = document.querySelector("h3"); // Grab the <h3> element for dynamic text update
 
   const startButton = document.getElementById("start-pomodoro");
   const resetButton = document.getElementById("reset-pomodoro");

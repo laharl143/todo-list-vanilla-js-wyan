@@ -358,7 +358,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (willLogout) {
         // User clicked "Logout"
         // Remove user preferences from local storage
-        localStorage.removeItem("userPreferences");
+        // localStorage.removeItem("userPreferences");
+
+        // Clear ALL local storage completely
+        localStorage.clear();
 
         // Refresh the current page
         window.location.reload();
