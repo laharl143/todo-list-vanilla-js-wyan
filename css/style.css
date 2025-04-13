@@ -17,6 +17,31 @@ body {
   margin: 0;
 }
 
+.filter-tags-container {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0px 0px 0px;
+  padding: 0 16px;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+.filter-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.filter-tag.active {
+  background-color: #007bff;
+  color: white;
+}
+
 #work-time, #break-time {
   width: 100%;
   padding: 8px;
@@ -82,8 +107,8 @@ label[for="work-time"], label[for="break-time"] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 100px 0px 75px 0px;
   text-align: center;
+  margin: 100px 0px 75px 0px;
 }
 
 .pomodoro-timer {
@@ -816,7 +841,7 @@ button {
   }
 
   .container-sub .card-holder {
-    margin-top: 28px;
+    margin-top: 5px;
   }
 
   .container-sub .card-holder .card {
@@ -1003,7 +1028,7 @@ button {
   }
 
   .container-sub .card-holder {
-    margin-top: 28px;
+    margin-top: 5px;
   }
 
   .container-sub .card-holder .card {
@@ -1140,7 +1165,7 @@ button {
   }
 
   .container-sub .card-holder {
-    margin-top: 28px;
+    margin-top: 5px;
   }
 
   .container-sub .card-holder .card {
@@ -1274,7 +1299,7 @@ button {
   }
 
   .container-sub .card-holder {
-    margin-top: 28px;
+    margin-top: 5px;
   }
 
   .container-sub .card-holder .card {
