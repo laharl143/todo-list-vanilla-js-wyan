@@ -33,7 +33,7 @@ body {
   border-radius: 16px;
   background-color: #f0f0f0;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 19px;
   transition: all 0.2s ease;
 }
 
@@ -129,6 +129,15 @@ button {
   min-width: 120px;
   text-align: center;
   white-space: nowrap;
+  border-radius: 15px; /* This makes the button rounded */
+  border: none; /* Optional: removes default border */
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+button:hover {
+  background-color: #e0e0e0; /* Change to whatever hover color you prefer */
+  transform: translateY(-2px); /* Optional: adds a slight lift effect */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: adds shadow on hover */
 }
 
 #pomodoro-status {
