@@ -52,6 +52,11 @@ function scheduleTaskNotification(task) {
 
   if (timeUntilDue > 0 && timeUntilDue < 7 * 24 * 60 * 60 * 1000) {
     setTimeout(() => {
+      const alarmSound = new Audio("assets/sounds/alarm-clock-90867.wav");
+      alarmSound.play().catch((error) => {
+        console.error("Audio playback failed:", error);
+      });
+
       new Notification("Task Reminder", {
         body: `${task.text} is due at ${formatTimeTo12Hour(reminderTime)}`,
         icon: "📌",
@@ -340,9 +345,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Refresh the display
                 displayTasks(currentSection);
 
-                // Show success message
-                swal("Date updated successfully!", {
+                // Show success message automatically for 2 seconds
+                swal({
+                  title: "Date Updated!",
+                  text: `Due date for "${task.text}" has been updated to ${selectedDate}.`,
                   icon: "success",
+                  buttons: false,
+                  timer: 2000, // Display for 2 seconds
                 });
               }
 
@@ -380,9 +389,13 @@ document.addEventListener("DOMContentLoaded", () => {
             // Re-render the tasks to reflect the deletion
             displayTasks(currentSection);
 
-            // Show task deleted confirmation popup
-            swal("Poof! Task deleted successfully!", {
+            // Show task deleted confirmation popup automatically for 2 seconds
+            swal({
+              title: "Task Deleted!",
+              text: "The task has been successfully deleted.",
               icon: "success",
+              buttons: false,
+              timer: 2000, // Display for 2 seconds
             });
           }
         });
@@ -448,9 +461,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Schedule the reminder
                 scheduleTaskNotification(task);
 
-                // Show success popup
-                swal("Reminder set successfully!", {
+                // Automatically show a success popup for 2 seconds
+                swal({
+                  title: "Reminder Set!",
+                  text: `Reminder for "${task.text}" is set at ${formattedTime}.`,
                   icon: "success",
+                  buttons: false,
+                  timer: 2000, // Display for 2 seconds
                 });
 
                 // Refresh the display to show the updated reminder time
@@ -495,8 +512,13 @@ document.addEventListener("DOMContentLoaded", () => {
         // Clear the taskContainer
         taskContainer.innerHTML = "";
 
-        swal("All data has been deleted!", {
+        // Show all tasks deleted confirmation popup automatically for 2 seconds
+        swal({
+          title: "All Tasks Deleted!",
+          text: "All tasks have been successfully deleted.",
           icon: "success",
+          buttons: false,
+          timer: 2000, // Display for 2 seconds
         });
       }
     });
