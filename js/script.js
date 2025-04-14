@@ -295,6 +295,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const task = JSON.parse(localStorage.getItem(taskId));
 
         if (task) {
+          const taskDate = new Date(task.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          // Prevent editing if the task is overdue
+          if (taskDate < today && !task.completed) {
+            swal("Editing is disabled for overdue tasks.", {
+              icon: "warning",
+            });
+            return;
+          }
+
           // Create a hidden date picker dynamically
           const hiddenDatePicker = document.createElement("input");
           hiddenDatePicker.type = "date";
@@ -386,6 +398,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const task = JSON.parse(localStorage.getItem(taskId));
 
         if (task) {
+          const taskDate = new Date(task.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          // Prevent editing if the task is overdue
+          if (taskDate < today && !task.completed) {
+            swal("Editing is disabled for overdue tasks.", {
+              icon: "warning",
+            });
+            return;
+          }
+
           // Create a hidden time picker dynamically
           const hiddenTimePicker = document.createElement("input");
           hiddenTimePicker.type = "time";
