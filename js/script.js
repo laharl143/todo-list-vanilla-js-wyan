@@ -12,22 +12,20 @@ function showDivisionsWithDelay() {
 function scheduleTaskNotification(task) {
   if (!("Notification" in window)) return;
 
-  const timeInput = document.getElementById("notificationTime");
   let hours = 9;
   let minutes = 0;
 
-  // Try to get custom time from input field
-  if (timeInput && timeInput.value) {
-    const [hh, mm] = timeInput.value.split(":").map(Number);
-    if (!isNaN(hh) && !isNaN(mm)) {
-      hours = hh;
-      minutes = mm;
-    }
+  // Remove dependency on the bottom-right input
+  const reminderTime = task.reminderTime || "09:00";
+  const [hh, mm] = reminderTime.split(":").map(Number);
+  if (!isNaN(hh) && !isNaN(mm)) {
+    hours = hh;
+    minutes = mm;
   }
 
   const now = new Date();
   const taskDate = new Date(task.date);
-  taskDate.setHours(hours, minutes, 0, 0); // Apply user-defined time
+  taskDate.setHours(hours, minutes, 0, 0);
 
   const timeUntilDue = taskDate - now;
 
@@ -45,11 +43,10 @@ function scheduleTaskNotification(task) {
     return;
   }
 
-  // Only schedule if it's within 7 days and still in the future
   if (timeUntilDue > 0 && timeUntilDue < 7 * 24 * 60 * 60 * 1000) {
     setTimeout(() => {
       new Notification("Task Reminder", {
-        body: `${task.text} is due at ${timeInput.value || "09:00"}`,
+        body: `${task.text} is due at ${reminderTime}`,
         icon: "📌",
       });
     }, timeUntilDue);
@@ -68,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const otherLink = document.getElementById("o4");
   const titleLink = document.getElementById("header_title");
 
-  // const taskList = document.getElementById("taskList");
   if ("Notification" in window && Notification.permission !== "granted") {
     Notification.requestPermission();
   }
@@ -217,6 +213,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const isDueToday =
           taskDate.toDateString() === today.toDateString(); // Check if the task is due today
 
+        // Retrieve reminder time if available
+        const reminderTime = task.reminderTime || "No reminder set";
+
         return `
           <div class="card align ${isTaskOverdue ? 'overdue' : ''}" data-task-id="${task.id}" style="background-color: ${
           task.completed ? "#d4edda" : isTaskOverdue ? "#ffcccc" : ""
@@ -250,6 +249,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     : "<i class='bx bx-calendar-alt'></i> " + task.date
                 }
               </p>
+              <p class="reminder ${
+                isTaskOverdue ? "overdue-date" : ""
+              }"><i class="bx bx-bell"></i> ${reminderTime}</p>
               <input type="date" id="hiddenDatePicker" style="display: none;" />
             </div>
             <i class="bx bx-trash-alt" data-task-id="${task.id}"></i>
@@ -364,6 +366,72 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       });
+    });
+
+    // Add event listeners to reminder times for setting reminders
+    taskContainer.addEventListener("click", (event) => {
+      const reminderElement = event.target.closest(".reminder");
+      if (reminderElement) {
+        const taskElement = reminderElement.closest(".card");
+        const taskId = taskElement.dataset.taskId;
+        const task = JSON.parse(localStorage.getItem(taskId));
+
+        if (task) {
+          // Create a hidden time picker dynamically
+          const hiddenTimePicker = document.createElement("input");
+          hiddenTimePicker.type = "time";
+          hiddenTimePicker.style.position = "absolute";
+          hiddenTimePicker.style.opacity = "0";
+          hiddenTimePicker.style.pointerEvents = "none";
+
+          // Append the hidden time picker to the body
+          document.body.appendChild(hiddenTimePicker);
+
+          // Show the time picker
+          hiddenTimePicker.showPicker();
+
+          // Listen for changes in the time picker
+          hiddenTimePicker.addEventListener("change", function () {
+            const selectedTime = this.value;
+
+            // Show a confirm button for setting the reminder
+            swal({
+              title: "Confirm Reminder",
+              text: `Set a reminder for "${task.text}" at ${selectedTime}?`,
+              icon: "info",
+              buttons: {
+                cancel: "Cancel",
+                confirm: "Set Reminder",
+              },
+            }).then((willSetReminder) => {
+              if (willSetReminder) {
+                // Save the selected time as the reminder time
+                task.reminderTime = selectedTime;
+                localStorage.setItem(taskId, JSON.stringify(task));
+
+                // Schedule the reminder
+                scheduleTaskNotification(task);
+
+                // Show success popup
+                swal("Reminder set successfully!", {
+                  icon: "success",
+                });
+
+                // Refresh the display to show the updated reminder time
+                displayTasks(currentSection);
+              }
+
+              // Remove the hidden time picker after use
+              hiddenTimePicker.remove();
+            });
+          });
+
+          // Remove the hidden time picker if the user cancels
+          hiddenTimePicker.addEventListener("blur", () => {
+            hiddenTimePicker.remove();
+          });
+        }
+      }
     });
 
     showDivisionsWithDelay();
