@@ -9,13 +9,20 @@ function showDivisionsWithDelay() {
   });
 }
 
+// Helper function to convert 24-hour time to 12-hour format with AM/PM
+function formatTimeTo12Hour(time) {
+  const [hours, minutes] = time.split(":").map(Number);
+  const period = hours >= 12 ? "PM" : "AM";
+  const formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+  return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+}
+
 function scheduleTaskNotification(task) {
   if (!("Notification" in window)) return;
 
   let hours = 9;
   let minutes = 0;
 
-  // Remove dependency on the bottom-right input
   const reminderTime = task.reminderTime || "09:00";
   const [hh, mm] = reminderTime.split(":").map(Number);
   if (!isNaN(hh) && !isNaN(mm)) {
@@ -46,7 +53,7 @@ function scheduleTaskNotification(task) {
   if (timeUntilDue > 0 && timeUntilDue < 7 * 24 * 60 * 60 * 1000) {
     setTimeout(() => {
       new Notification("Task Reminder", {
-        body: `${task.text} is due at ${reminderTime}`,
+        body: `${task.text} is due at ${formatTimeTo12Hour(reminderTime)}`,
         icon: "📌",
       });
     }, timeUntilDue);
@@ -214,7 +221,9 @@ document.addEventListener("DOMContentLoaded", () => {
           taskDate.toDateString() === today.toDateString(); // Check if the task is due today
 
         // Retrieve reminder time if available
-        const reminderTime = task.reminderTime || "No reminder set";
+        const reminderTime = task.reminderTime
+          ? formatTimeTo12Hour(task.reminderTime)
+          : "No reminder set";
 
         return `
           <div class="card align ${isTaskOverdue ? 'overdue' : ''}" data-task-id="${task.id}" style="background-color: ${
@@ -394,10 +403,13 @@ document.addEventListener("DOMContentLoaded", () => {
           hiddenTimePicker.addEventListener("change", function () {
             const selectedTime = this.value;
 
+            // Convert the selected time to 12-hour format
+            const formattedTime = formatTimeTo12Hour(selectedTime);
+
             // Show a confirm button for setting the reminder
             swal({
               title: "Confirm Reminder",
-              text: `Set a reminder for "${task.text}" at ${selectedTime}?`,
+              text: `Set a reminder for "${task.text}" at ${formattedTime}?`,
               icon: "info",
               buttons: {
                 cancel: "Cancel",
@@ -606,6 +618,25 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   otherLink.addEventListener("click", function () {
     handleSectionLinkClick("other", otherLink);
+  });
+
+  const searchInput = document.getElementById("search");
+
+  // Add event listener for search functionality
+  searchInput.addEventListener("input", (event) => {
+    const searchTerm = event.target.value.toLowerCase();
+
+    // Filter tasks based on the search term
+    const tasks = Object.entries(localStorage)
+      .filter(([key]) => key !== "userPreferences")
+      .map(([, task]) => JSON.parse(task));
+
+    const filteredTasks = tasks.filter((task) =>
+      task.text.toLowerCase().includes(searchTerm)
+    );
+
+    // Display only the filtered tasks
+    displayTasks(currentSection, filteredTasks);
   });
 
   let currentSection = "myDay";
