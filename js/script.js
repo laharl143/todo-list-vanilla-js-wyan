@@ -185,32 +185,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     taskContainer.innerHTML = filteredTasks
-      .map(
-        (task) => `
-          <div class="card align" data-task-id="${task.id}">
-            <input type="checkbox" name="task" id="${task.id}" ${
-          task.completed ? "checked" : ""
-        }>
-            <div ${task.completed ? 'class="marker done"' : 'class="marker"'}>
-              <span>${task.text}</span>
-              ${
-                task.note ? `<small class="task-note">${task.note}</small>` : ""
-              }
-              <p id="taskDate" class="date ${
-                isToday(task.date) ? "today" : ""
-              }">${
-          isToday(task.date)
-            ? "Today"
-            : "<i class='bx bx-calendar-alt'></i> " + task.date
-        }</p>
-                <input type="date" id="hiddenDatePicker" style="display: none;" />
-            </div>
-            <i class="bx bx-trash-alt"></i>
-          </div>
-        `
-      )
-      .join("");
-
+  .map(
+    (task) => `
+      <div class="card align" data-task-id="${task.id}" style="background-color: ${
+        task.completed ? "#d4edda" : ""
+      };">
+        <input type="checkbox" name="task" id="${task.id}" ${
+      task.completed ? "checked" : ""
+    }>
+        <div ${task.completed ? 'class="marker done"' : 'class="marker"'} >
+          <span>${task.text}</span>
+          ${
+            task.note ? `<small class="task-note">${task.note}</small>` : ""
+          }
+          <p id="taskDate" class="date ${
+            isToday(task.date) ? "today" : ""
+          }">${
+      isToday(task.date)
+        ? "Today"
+        : "<i class='bx bx-calendar-alt'></i> " + task.date
+    }</p>
+            <input type="date" id="hiddenDatePicker" style="display: none;" />
+        </div>
+        <i class="bx bx-trash-alt"></i>
+      </div>
+    `
+  )
+  .join("");
     const searchInput = document.getElementById("search");
 
     // Function to handle the search input and filter tasks
@@ -252,6 +253,14 @@ document.addEventListener("DOMContentLoaded", () => {
           const marker = event.target.nextElementSibling;
           if (marker.classList.contains("marker")) {
             marker.classList.toggle("done", task.completed);
+          }
+    
+          // Change the background color of the task tab based on completion
+          const taskCard = event.target.closest(".card");
+          if (task.completed) {
+            taskCard.style.backgroundColor = "#d4edda"; // Light green for completed
+          } else {
+            taskCard.style.backgroundColor = ""; // Reset to default
           }
         }
       }
