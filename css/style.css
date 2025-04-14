@@ -17,6 +17,18 @@ body {
   margin: 0;
 }
 
+.notificationTime {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ddd;
+}
+
+
 .filter-tags-container {
   display: flex;
   gap: 5px;

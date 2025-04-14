@@ -11,25 +11,48 @@ function showDivisionsWithDelay() {
 
 function scheduleTaskNotification(task) {
   if (!("Notification" in window)) return;
-  if (Notification.permission !== "granted") return;
+
+  const timeInput = document.getElementById("notificationTime");
+  let hours = 9;
+  let minutes = 0;
+
+  // Try to get custom time from input field
+  if (timeInput && timeInput.value) {
+    const [hh, mm] = timeInput.value.split(":").map(Number);
+    if (!isNaN(hh) && !isNaN(mm)) {
+      hours = hh;
+      minutes = mm;
+    }
+  }
 
   const now = new Date();
   const taskDate = new Date(task.date);
-  taskDate.setHours(9, 0, 0, 0); // Notify at 9:00 AM
+  taskDate.setHours(hours, minutes, 0, 0); // Apply user-defined time
 
   const timeUntilDue = taskDate - now;
 
+  if (Notification.permission === "denied") {
+    alert(`Reminder: ${task.text} is due on ${task.date}`);
+    return;
+  }
+
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        scheduleTaskNotification(task); // Retry
+      }
+    });
+    return;
+  }
+
+  // Only schedule if it's within 7 days and still in the future
   if (timeUntilDue > 0 && timeUntilDue < 7 * 24 * 60 * 60 * 1000) {
     setTimeout(() => {
       new Notification("Task Reminder", {
-        body: `${task.text} is due today!`,
+        body: `${task.text} is due at ${timeInput.value || "09:00"}`,
         icon: "📌",
       });
     }, timeUntilDue);
-  }
-
-  if (Notification.permission === "denied") {
-    alert(`Reminder: ${task.text} is due on ${task.date}`);
   }
 }
 
@@ -185,33 +208,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     taskContainer.innerHTML = filteredTasks
-  .map(
-    (task) => `
-      <div class="card align" data-task-id="${task.id}" style="background-color: ${
-        task.completed ? "#d4edda" : ""
-      };">
+      .map(
+        (task) => `
+      <div class="card align" data-task-id="${
+        task.id
+      }" style="background-color: ${task.completed ? "#d4edda" : ""};">
         <input type="checkbox" name="task" id="${task.id}" ${
-      task.completed ? "checked" : ""
-    }>
+          task.completed ? "checked" : ""
+        }>
         <div ${task.completed ? 'class="marker done"' : 'class="marker"'} >
           <span>${task.text}</span>
-          ${
-            task.note ? `<small class="task-note">${task.note}</small>` : ""
-          }
-          <p id="taskDate" class="date ${
-            isToday(task.date) ? "today" : ""
-          }">${
-      isToday(task.date)
-        ? "Today"
-        : "<i class='bx bx-calendar-alt'></i> " + task.date
-    }</p>
+          ${task.note ? `<small class="task-note">${task.note}</small>` : ""}
+          <p id="taskDate" class="date ${isToday(task.date) ? "today" : ""}">${
+          isToday(task.date)
+            ? "Today"
+            : "<i class='bx bx-calendar-alt'></i> " + task.date
+        }</p>
             <input type="date" id="hiddenDatePicker" style="display: none;" />
         </div>
         <i class="bx bx-trash-alt"></i>
       </div>
     `
-  )
-  .join("");
+      )
+      .join("");
     const searchInput = document.getElementById("search");
 
     // Function to handle the search input and filter tasks
@@ -254,7 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (marker.classList.contains("marker")) {
             marker.classList.toggle("done", task.completed);
           }
-    
+
           // Change the background color of the task tab based on completion
           const taskCard = event.target.closest(".card");
           if (task.completed) {
