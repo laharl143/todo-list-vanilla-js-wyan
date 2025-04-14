@@ -19,12 +19,12 @@ body {
 
 .filter-tags-container {
   display: flex;
-  gap: 8px;
+  gap: 5px;
   margin: 16px 0px 0px 0px;
   padding: 0 16px;
   align-items: center;
   text-align: center;
-  justify-content: center;
+  justify-content: right;
 }
 
 .filter-tag {
