@@ -7,6 +7,30 @@
   font-family: "Poppins", sans-serif;
 }
 
+/* Overdue task styling */
+.card.overdue {
+  background-color: #ffcccc; /* Light red background for overdue tasks */
+}
+
+.marker.overdue-marker {
+  color: #ff0000; /* Red text for overdue tasks */
+}
+
+.crossed-out {
+  text-decoration: line-through;
+  color: #a0a0a0; /* Gray color for crossed-out text */
+}
+
+.date.overdue-date {
+  color: #ff0000; /* Red color for overdue date text */
+}
+
+/* Completed task styling */
+.marker.done {
+  background-color: #d4edda; /* Light green background for completed tasks */
+  color: #155724; /* Dark green text for completed tasks */
+}
+
 html {
   scroll-behavior: smooth;
 }

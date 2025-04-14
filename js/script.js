@@ -208,139 +208,164 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     taskContainer.innerHTML = filteredTasks
-      .map(
-        (task) => `
-      <div class="card align" data-task-id="${
-        task.id
-      }" style="background-color: ${task.completed ? "#d4edda" : ""};">
-        <input type="checkbox" name="task" id="${task.id}" ${
+      .map((task) => {
+        const taskDate = new Date(task.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set today's time to midnight for comparison
+        const isTaskOverdue =
+          taskDate < today && !task.completed; // Exclude tasks due today
+        const isDueToday =
+          taskDate.toDateString() === today.toDateString(); // Check if the task is due today
+
+        return `
+          <div class="card align ${isTaskOverdue ? 'overdue' : ''}" data-task-id="${task.id}" style="background-color: ${
+          task.completed ? "#d4edda" : isTaskOverdue ? "#ffcccc" : ""
+        };">
+            <input type="checkbox" name="task" id="${task.id}" ${
           task.completed ? "checked" : ""
-        }>
-        <div ${task.completed ? 'class="marker done"' : 'class="marker"'} >
-          <span>${task.text}</span>
-          ${task.note ? `<small class="task-note">${task.note}</small>` : ""}
-          <p id="taskDate" class="date ${isToday(task.date) ? "today" : ""}">${
-          isToday(task.date)
-            ? "Today"
-            : "<i class='bx bx-calendar-alt'></i> " + task.date
-        }</p>
-            <input type="date" id="hiddenDatePicker" style="display: none;" />
-        </div>
-        <i class="bx bx-trash-alt"></i>
-      </div>
-    `
-      )
+        } ${isTaskOverdue ? "disabled" : ""}>
+            <div ${
+              task.completed
+                ? 'class="marker done"'
+                : `class="marker ${isTaskOverdue ? 'overdue-marker' : ''}"`
+            }>
+              <span ${
+                isTaskOverdue ? 'class="crossed-out"' : ''
+              }>${task.text}</span>
+              ${
+                task.note
+                  ? `<small class="task-note ${
+                      isTaskOverdue ? 'crossed-out' : ''
+                    }">${task.note}</small>`
+                  : ""
+              }
+              <p id="taskDate" class="date ${
+                isDueToday ? "today" : ""
+              } ${isTaskOverdue ? "overdue-date" : ""}">
+                ${
+                  isTaskOverdue
+                    ? '<i class="bx bx-error"></i> Incomplete Task'
+                    : isDueToday
+                    ? "Due Today!"
+                    : "<i class='bx bx-calendar-alt'></i> " + task.date
+                }
+              </p>
+              <input type="date" id="hiddenDatePicker" style="display: none;" />
+            </div>
+            <i class="bx bx-trash-alt" data-task-id="${task.id}"></i>
+          </div>
+        `;
+      })
       .join("");
-    const searchInput = document.getElementById("search");
 
-    // Function to handle the search input and filter tasks
-    const handleSearch = () => {
-      toggleMenu();
-      const searchText = searchInput.value.trim().toLowerCase();
-      if (searchText !== "") {
-        // Filter tasks based on the search text
-        const filteredTasks = tasks.filter((task) =>
-          task.text.toLowerCase().includes(searchText)
-        );
-        displayTasks(currentSection, filteredTasks);
-      } else {
-        // If the search text is empty, display all tasks
-        displayTasks(currentSection);
-      }
-    };
-
-    // Add keydown event listener to the search input
-    const keydownHandler = (event) => {
-      if (event.key === "Enter") {
-        handleSearch();
-        searchInput.removeEventListener("keydown", keydownHandler);
-      }
-    };
-
-    // Add keydown event listener to the search input
-    searchInput.addEventListener("keydown", keydownHandler);
-
-    // Attach event listener to the parent container
-    taskContainer.addEventListener("click", (event) => {
-      // Handle checkbox change
-      if (event.target.type === "checkbox" && event.target.name === "task") {
+    // Add event listeners to checkboxes
+    const checkboxes = taskContainer.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", (event) => {
         const taskId = event.target.id;
-        const task = tasks.find((task) => task.id.toString() === taskId);
-        if (task) {
-          task.completed = event.target.checked;
-          localStorage.setItem(task.id, JSON.stringify(task));
-          const marker = event.target.nextElementSibling;
-          if (marker.classList.contains("marker")) {
-            marker.classList.toggle("done", task.completed);
-          }
+        const taskData = JSON.parse(localStorage.getItem(taskId));
 
-          // Change the background color of the task tab based on completion
-          const taskCard = event.target.closest(".card");
-          if (task.completed) {
-            taskCard.style.backgroundColor = "#d4edda"; // Light green for completed
-          } else {
-            taskCard.style.backgroundColor = ""; // Reset to default
-          }
-        }
-      }
+        // Update the task's completed status
+        taskData.completed = event.target.checked;
 
-      // Handle delete icon click
-      if (event.target.classList.contains("bx-trash-alt")) {
+        // Save the updated task back to localStorage
+        localStorage.setItem(taskId, JSON.stringify(taskData));
+
+        // Re-render the tasks to reflect the updated status
+        displayTasks(currentSection);
+      });
+    });
+
+    // Add event listeners to task dates
+    const taskDates = taskContainer.querySelectorAll(".date");
+    taskDates.forEach((dateElement) => {
+      dateElement.addEventListener("click", (event) => {
         const taskId = event.target.closest(".card").dataset.taskId;
+        const task = JSON.parse(localStorage.getItem(taskId));
+
+        if (task) {
+          // Create a hidden date picker dynamically
+          const hiddenDatePicker = document.createElement("input");
+          hiddenDatePicker.type = "date";
+          hiddenDatePicker.value = task.date;
+          hiddenDatePicker.style.position = "absolute";
+          hiddenDatePicker.style.opacity = "0";
+          hiddenDatePicker.style.pointerEvents = "none";
+
+          // Append the hidden date picker to the body
+          document.body.appendChild(hiddenDatePicker);
+
+          // Show the date picker
+          hiddenDatePicker.showPicker();
+
+          // Listen for changes in the date picker
+          hiddenDatePicker.addEventListener("change", function () {
+            const selectedDate = this.value;
+
+            // Ask for confirmation before updating the date
+            swal({
+              title: "Are you sure?",
+              text: `Update the due date from ${task.date} to ${selectedDate}.`,
+              icon: "info",
+              buttons: ["Cancel", "Yes"],
+            }).then((willChangeDate) => {
+              if (willChangeDate) {
+                // Update the date in local storage
+                task.date = selectedDate;
+                localStorage.setItem(taskId, JSON.stringify(task));
+
+                // Refresh the display
+                displayTasks(currentSection);
+
+                // Show success message
+                swal("Date updated successfully!", {
+                  icon: "success",
+                });
+              }
+
+              // Remove the hidden date picker after use
+              hiddenDatePicker.remove();
+            });
+          });
+
+          // Remove the hidden date picker if the user cancels
+          hiddenDatePicker.addEventListener("blur", () => {
+            hiddenDatePicker.remove();
+          });
+        }
+      });
+    });
+
+    // Add event listeners to trash icons
+    const trashIcons = taskContainer.querySelectorAll(".bx-trash-alt");
+    trashIcons.forEach((icon) => {
+      icon.addEventListener("click", (event) => {
+        const taskId = event.target.getAttribute("data-task-id");
+
+        // Show confirmation popup
         swal({
-          title: "Delete current task?",
-          text: "Once deleted, you will not be able to recover this task!",
+          title: "Are you sure?",
+          text: "Do you really want to delete this task?",
           icon: "warning",
-          buttons: true,
+          buttons: ["Cancel", "Delete"],
           dangerMode: true,
         }).then((willDelete) => {
           if (willDelete) {
+            // Remove the task from localStorage
             localStorage.removeItem(taskId);
-            event.target.closest(".card").remove();
-            swal("Poof! Your task has been deleted!", {
+
+            // Re-render the tasks to reflect the deletion
+            displayTasks(currentSection);
+
+            // Show task deleted confirmation popup
+            swal("Poof! Task deleted successfully!", {
               icon: "success",
             });
           }
         });
-      }
-
-      if (event.target.classList.contains("date")) {
-        const taskId = event.target.closest(".card").dataset.taskId;
-        const task = tasks.find((task) => task.id.toString() === taskId);
-
-        if (task) {
-          // Trigger the date picker
-          document.getElementById("hiddenDatePicker").showPicker();
-
-          // Listen for changes in the date picker
-          document
-            .getElementById("hiddenDatePicker")
-            .addEventListener("change", function () {
-              const selectedDate = this.value;
-
-              // Ask for confirmation before updating the date
-              swal({
-                title: "Are you sure?",
-                text: `Update the due date from ${task.date} to ${selectedDate}.`,
-                icon: "info",
-                buttons: ["Cancel", "Yes"],
-              }).then((willChangeDate) => {
-                if (willChangeDate) {
-                  // Update the date in local storage
-                  task.date = selectedDate;
-                  localStorage.setItem(taskId, JSON.stringify(task));
-
-                  // Refresh the display
-                  displayTasks(currentSection);
-                } else {
-                  // Reset the date picker if the user cancels
-                  document.getElementById("hiddenDatePicker").value = "";
-                }
-              });
-            });
-        }
-      }
+      });
     });
+
     showDivisionsWithDelay();
   };
 
