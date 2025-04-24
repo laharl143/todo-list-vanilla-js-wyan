@@ -707,4 +707,39 @@ document.addEventListener("DOMContentLoaded", () => {
       burgerIcon.classList.remove("cross");
     }
   });
+
+  // Function to handle long notes
+  const handleLongNotes = () => {
+    const noteInput = document.getElementById("taskNote");
+
+    noteInput.addEventListener("input", () => {
+      if (noteInput.scrollWidth > noteInput.clientWidth) {
+        swal({
+          title: "Longer Notes",
+          content: {
+            element: "textarea",
+            attributes: {
+              value: noteInput.value,
+              rows: 5,
+              style: "width: 100%;",
+            },
+          },
+          buttons: {
+            cancel: "Cancel",
+            confirm: "Save",
+          },
+        }).then((result) => {
+          if (result) {
+            const textarea = document.querySelector(".swal-content__textarea");
+            if (textarea) {
+              noteInput.value = textarea.value; // Update the note input with the edited value
+            }
+          }
+        });
+      }
+    });
+  };
+
+  // Call the function to handle long notes
+  handleLongNotes();
 });
